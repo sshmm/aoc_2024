@@ -2,10 +2,29 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 
 fn main() -> io::Result<()> {
-    let file = File::open("day01/resources/data.txt").unwrap();
+    let mut list1: Vec<i32> = Vec::new();
+    let mut list2: Vec<i32> = Vec::new();
+    get_locations(
+        "day01/resources/data.txt".to_string(),
+        &mut list1,
+        &mut list2,
+    )
+    .unwrap();
+    let total_distance = get_distance(&list1, &list2);
+    println!("{total_distance}");
+
+    let similiarity = get_similiarity(&list1, &list2);
+    println!("{similiarity}");
+    Ok(())
+}
+
+fn get_locations(
+    path: String,
+    list1: &mut Vec<i32>,
+    list2: &mut Vec<i32>,
+) -> Result<(), io::Error> {
+    let file = File::open(path).unwrap();
     let reader: BufReader<File> = BufReader::new(file);
-    let mut list1 = Vec::new();
-    let mut list2 = Vec::new();
     for line in reader.lines() {
         let numbers: Vec<i32> = line?
             .split_whitespace()
@@ -18,29 +37,29 @@ fn main() -> io::Result<()> {
     }
     list1.sort();
     list2.sort();
+    Ok(())
+}
+
+fn get_distance(list1: &Vec<i32>, list2: &Vec<i32>) -> i32 {
     let mut sum = 0;
     for i in 0..list1.len() {
         sum += (list1[i] - list2[i]).abs();
     }
-    println!("{sum}");
+    sum
+}
 
+fn get_similiarity(list1: &Vec<i32>, list2: &Vec<i32>) -> i32 {
     let mut similiarity = 0;
-    for item in list1.iter() {
+    let mut list2_occurrences_map = std::collections::HashMap::new();
+    for item in list2.iter() {
+        *list2_occurrences_map.entry(item).or_insert(0) += 1;
+    }
+    for &item in list1.iter() {
         let mut occurence = 0;
-        let mut found = false;
-        'inner: for item2 in list2.iter() {
-            if item == item2 {
-                occurence += 1;
-                found = true;
-            } else {
-                if found {
-                    //the list is ordered so no need to continue
-                    break 'inner;
-                }
-            }
+        if list2_occurrences_map.contains_key(&item) {
+            occurence = *list2_occurrences_map.get(&item).unwrap();
         }
         similiarity += occurence * item;
     }
-    println!("{similiarity}");
-    Ok(())
+    similiarity
 }
