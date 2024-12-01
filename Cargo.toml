@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [ "day*"]
+
+
+[workspace.package]
+name = "aoc_2024"
+version = "0.1.0"
+edition = "2021"
+authors = ["sshmm"]
