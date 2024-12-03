@@ -73,7 +73,7 @@ fn calc_safe_results(reports: Vec<Vec<i32>>) -> Result<i32, std::io::Error> {
     }
     Ok(sum)
 }
-
+/*TODO: Fix */
 fn find_faulty_level(report: &[i32]) -> Option<usize> {
     for i in 1..(report.len() - 1) {
         if i as i32 - 1 >= 0 {
