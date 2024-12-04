@@ -4,8 +4,10 @@ use std::io::{self, BufRead, BufReader};
 fn main() -> io::Result<()> {
     let data = read_file("day04/resources/data.txt")?;
     let xmas_count = get_xmas(&data.clone());
+    let xmas_count2 = get_xmas2(&data.clone());
     let x_mas_count = get_x_mas(&data);
     println!("XMAS count: {}", xmas_count);
+    println!("XMAS count: {}", xmas_count2);
     println!("X-MAS count: {}", x_mas_count);
 
     Ok(())
@@ -94,6 +96,89 @@ fn get_xmas(characters: &Vec<Vec<char>>) -> i32 {
                     && characters[(i - 3) as usize][(j + 3) as usize] == 'S'
                 {
                     result += 1;
+                }
+            }
+        }
+    }
+    result
+}
+
+/*more universal sol */
+fn get_xmas2(characters: &Vec<Vec<char>>) -> i32 {
+    /*all rows have same length */
+    let word = "XMAS";
+    let row_len = characters[0].len() as isize;
+    let column_len = characters.len() as isize;
+    let mut result = 0;
+    for i in 0..column_len {
+        for j in 0..row_len {
+            if characters[i as usize][j as usize] == 'X' {
+                if j + 3 < row_len
+                    && characters[i as usize][j as usize..j as usize + 4]
+                        .iter()
+                        .collect::<String>()
+                        == word
+                {
+                    result += 1;
+                }
+                if j - 3 >= 0
+                    && (0..word.len())
+                        .map(|k| characters[i as usize][j as usize - k])
+                        .collect::<String>()
+                        == word
+                {
+                    result += 1;
+                }
+                if i + 3 < column_len
+                    && (0..word.len())
+                        .map(|k| characters[i as usize + k][j as usize])
+                        .collect::<String>()
+                        == word
+                {
+                    result += 1;
+                }
+                if i - 3 >= 0
+                    && (0..word.len())
+                        .map(|k| characters[i as usize - k][j as usize])
+                        .collect::<String>()
+                        == word
+                {
+                    result += 1;
+                }
+                if i + 3 < column_len && j + 3 < row_len {
+                    let diag_word: String = (0..word.len())
+                        .map(|k| characters[i as usize + k][j as usize + k])
+                        .collect();
+                    if diag_word == word {
+                        result += 1;
+                    }
+                }
+
+                if i - 3 >= 0 && j - 3 >= 0 {
+                    let diag_word: String = (0..word.len())
+                        .map(|k| characters[i as usize - k][j as usize - k])
+                        .collect();
+                    if diag_word == word {
+                        result += 1;
+                    }
+                }
+
+                if i - 3 >= 0 && j + 3 < row_len {
+                    let diag_word: String = (0..word.len())
+                        .map(|k| characters[i as usize - k][j as usize + k])
+                        .collect();
+                    if diag_word == word {
+                        result += 1;
+                    }
+                }
+
+                if i + 3 < column_len && j - 3 >= 0 {
+                    let diag_word: String = (0..word.len())
+                        .map(|k| characters[i as usize + k][j as usize - k])
+                        .collect();
+                    if diag_word == word {
+                        result += 1;
+                    }
                 }
             }
         }
