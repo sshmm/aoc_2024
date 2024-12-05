@@ -3,8 +3,8 @@ use std::io::{self, BufRead, BufReader};
 
 fn main() -> io::Result<()> {
     let data = read_file("day04/resources/data.txt")?;
-    let xmas_count = get_xmas(&data.clone());
-    let xmas_count2 = get_xmas2(&data.clone());
+    let xmas_count = get_xmas(&data);
+    let xmas_count2 = get_xmas2(&data);
     let x_mas_count = get_x_mas(&data);
     println!("XMAS count: {}", xmas_count);
     println!("XMAS count: {}", xmas_count2);
