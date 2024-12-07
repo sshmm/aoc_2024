@@ -8,7 +8,7 @@ fn main() -> io::Result<()> {
     let total = compare_numbers(&mut numbers);
     println!("{}", numbers.len());
     println!("total part 1: {}", total);
-    let total2 = concatenate_numbers(&mut numbers);
+    let total2 = compare_numbers2(&mut numbers);
     println!("{}", total);
     println!("{}", total2);
     println!("{}", total2 + total);
@@ -49,6 +49,28 @@ fn create_combinations(op_count: usize) -> Vec<Vec<char>> {
     combinations
 }
 
+fn create_combinations2(op_count: usize) -> Vec<Vec<char>> {
+    let base: usize = 3;
+    let mut combinations: Vec<Vec<char>> = vec![vec![' '; op_count]; base.pow(op_count as u32)];
+    for col in 0..op_count {
+        let count = base.pow(col as u32);
+        for row in 0..base.pow(op_count as u32) {
+            let op = match (row / count) % base {
+                0 => '+',
+                1 => '*',
+                2 => 'C',
+                _ => panic!("Invalid operator"),
+            };
+            combinations[row][col] = op;
+        }
+    }
+    println!("Here");
+    combinations
+        .into_iter()
+        .filter(|c| c.contains(&'C'))
+        .collect() // Filter out the ones with C
+}
+
 fn calculate_result(row: &Vec<u64>) -> u64 {
     let op_count = row.len() - 2; // first one is the result
     let result0 = row[0];
@@ -84,36 +106,10 @@ fn calculate_result(row: &Vec<u64>) -> u64 {
     return 0;
 }
 
-fn compare_numbers(numbers: &mut Vec<Vec<u64>>) -> u64 {
-    let mut total = 0;
-    let mut indices_to_remove = Vec::new();
-    for (idx, row) in numbers.iter().enumerate() {
-        let result = calculate_result(row);
-        if result > 0 {
-            total += result;
-            indices_to_remove.push(idx);
-        }
-    }
-    println!("{}", indices_to_remove.len());
-    for &idx in indices_to_remove.iter().rev() {
-        numbers.remove(idx);
-    }
-    total
-}
-
-fn concatenate(a: u64, b: u64) -> u64 {
-    format!("{}{}", a, b).parse::<u64>().unwrap()
-}
-
-fn calculate_result2(row: &Vec<u64>) -> Vec<u64> {
-    let mut total = Vec::new();
-    if row.len() == 2 {
-        total.push(row[1]);
-        return total;
-    }
+fn calculate_result2(row: &Vec<u64>) -> u64 {
     let op_count = row.len() - 2; // first one is the result
-
-    let combinations = create_combinations(op_count);
+    let result0 = row[0];
+    let combinations: Vec<Vec<char>> = create_combinations2(op_count);
     'outer: for combination in combinations {
         //  println!("Trying combination: {:?}", combination);
         let mut result: u64 = row[1];
@@ -134,87 +130,52 @@ fn calculate_result2(row: &Vec<u64>) -> Vec<u64> {
                         continue 'outer; // Skip this iteration if multiplication overflows
                     }
                 },
+                'C' => concatenate(result, rhs),
                 _ => panic!("Invalid operator"),
             };
         }
-        total.push(result);
+        if result0 == result {
+            //    println!("Found a match: {:?}", combination);
+            return result;
+        }
+    }
+    return 0;
+}
+
+fn compare_numbers(numbers: &mut Vec<Vec<u64>>) -> u64 {
+    let mut total = 0;
+    let mut indices_to_remove = Vec::new();
+    for (idx, row) in numbers.iter().enumerate() {
+        let result = calculate_result(row);
+        if result > 0 {
+            total += result;
+            indices_to_remove.push(idx);
+        }
+    }
+    println!("{}", indices_to_remove.len());
+    for &idx in indices_to_remove.iter().rev() {
+        numbers.remove(idx);
     }
     total
 }
 
-fn concatenate_numbers(numbers: &mut Vec<Vec<u64>>) -> u64 {
+fn compare_numbers2(numbers: &mut Vec<Vec<u64>>) -> u64 {
     let mut total = 0;
-
-    'outer: for row in numbers {
-        if row.len() == 3 {
-            if row[0] == concatenate(row[1], row[2]) {
-                total += row[0];
-            }
-        } else {
-            let possible_comp = row.len() - 2;
-            for i in 0..possible_comp {
-                let mut old_row = row.clone();
-                let mut new_row0 = Vec::new();
-                let mut new_row1 = Vec::new();
-
-                for _j in 0..i + 2 {
-                    new_row0.push(old_row.remove(0));
-                }
-
-                new_row1.push(new_row0[0]);
-                for _i in i + 2..row.len() {
-                    new_row1.push(old_row.remove(0));
-                }
-                let result0 = calculate_result2(&new_row0);
-                let result1 = calculate_result2(&new_row1);
-                for r0 in &result0 {
-                    for r1 in result1.iter() {
-                        let result = concatenate(*r0, *r1);
-                        if result == row[0] {
-                            total += result;
-                            continue 'outer;
-                        } else {
-                            continue;
-                        }
-                    }
-                }
-            }
+    let mut indices_to_remove = Vec::new();
+    for (idx, row) in numbers.iter().enumerate() {
+        let result = calculate_result2(row);
+        if result > 0 {
+            total += result;
+            indices_to_remove.push(idx);
         }
+    }
+    println!("{}", indices_to_remove.len());
+    for &idx in indices_to_remove.iter().rev() {
+        numbers.remove(idx);
     }
     total
 }
 
-/*Wrong */
-fn concatenate_adjacent_numbers(numbers: &mut Vec<Vec<u64>>) -> u64 {
-    let mut total = 0;
-    'outer: for row in numbers {
-        if row.len() == 3 {
-            if row[0] == concatenate(row[1], row[2]) {
-                total += row[0];
-            }
-        } else {
-            let possible_comp = row.len() - 2;
-            println!("old {:?}", row);
-            for i in 0..possible_comp {
-                let mut old_row = row.clone();
-                let mut new_row = Vec::new();
-                //println!("{:?}", row);
-                for _j in 0..(i + 1) {
-                    new_row.push(old_row.remove(0));
-                }
-                let conctenated = concatenate(old_row.remove(0), old_row.remove(0));
-                new_row.push(conctenated);
-                new_row.append(&mut old_row);
-                println!("new {:?}", new_row);
-                let result = calculate_result(&new_row);
-                if result > 0 {
-                    total += result;
-                    continue 'outer;
-                } else {
-                    continue;
-                }
-            }
-        }
-    }
-    total
+fn concatenate(a: u64, b: u64) -> u64 {
+    format!("{}{}", a, b).parse::<u64>().unwrap()
 }
