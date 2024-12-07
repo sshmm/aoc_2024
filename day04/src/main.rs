@@ -1,8 +1,7 @@
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
-
+use shared::read_characters;
+use std::io::{self};
 fn main() -> io::Result<()> {
-    let data = read_file("day04/resources/data.txt")?;
+    let data = read_characters("day04/resources/data.txt")?;
     let xmas_count = get_xmas(&data);
     let xmas_count2 = get_xmas2(&data);
     let x_mas_count = get_x_mas(&data);
@@ -11,17 +10,6 @@ fn main() -> io::Result<()> {
     println!("X-MAS count: {}", x_mas_count);
 
     Ok(())
-}
-
-fn read_file(file_name: &str) -> Result<Vec<Vec<char>>, io::Error> {
-    let file = File::open(file_name)?;
-    let reader: BufReader<File> = BufReader::new(file);
-    let mut characters: Vec<Vec<char>> = Vec::new();
-    for line in reader.lines() {
-        characters.push(line?.chars().collect());
-    }
-
-    Ok(characters)
 }
 
 fn get_xmas(characters: &Vec<Vec<char>>) -> i32 {
