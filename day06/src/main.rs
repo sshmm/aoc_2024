@@ -1,6 +1,6 @@
 use shared::read_characters;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     io::{self},
 };
 
@@ -23,11 +23,12 @@ fn get_steps(characters: &mut Vec<Vec<char>>) -> (usize, usize) {
     let mut current_pos = (0, 0, Direction::Up);
     let mut distinct_pos = 0;
     let mut loop_possible_count = 0;
-    let mut map: HashMap<(usize, usize), bool> = HashMap::new();
+    let mut map: HashSet<(usize, usize)> = HashSet::new();
     'outer: for i in 0..characters.len() {
         for j in 0..characters[i].len() {
             if characters[i][j] == '^' {
                 current_pos = (i, j, Direction::Up);
+                map.insert((i, j));
                 characters[i][j] = 'U';
                 distinct_pos += 1;
                 break 'outer;
@@ -39,12 +40,13 @@ fn get_steps(characters: &mut Vec<Vec<char>>) -> (usize, usize) {
         && current_pos.0 < characters.len()
         && current_pos.1 < characters[current_pos.0].len()
     {
+        //println!("{} {}", current_pos.0 - 1, current_pos.1);
         if (current_pos.0 == 99 && current_pos.1 == 12)
             || (current_pos.0 == 100 && current_pos.1 == 12)
             || (current_pos.0 == 100 && current_pos.1 == 11)
             || (current_pos.0 == 100 && current_pos.1 == 13)
         {
-            println!("{} {} {:?}", current_pos.0, current_pos.1, current_pos.2);
+            //println!("{} {} {:?}", current_pos.0, current_pos.1, current_pos.2);
         }
 
         match current_pos.2 {
@@ -79,8 +81,8 @@ fn get_steps(characters: &mut Vec<Vec<char>>) -> (usize, usize) {
         }
     }
 
-    println!("{} {}", current_pos.0, current_pos.1);
-    println!("{:?}", current_pos.2);
+    //println!("{} {}", current_pos.0, current_pos.1);
+    //println!("{:?}", current_pos.2);
     (distinct_pos, loop_possible_count)
 }
 
@@ -89,7 +91,7 @@ fn move_up(
     current_pos: &mut (usize, usize, Direction),
     distinct_pos: &mut usize,
     loop_possible_count: &mut usize,
-    total_map: &mut HashMap<(usize, usize), bool>,
+    total_map: &mut HashSet<(usize, usize)>,
 ) {
     let mut current_cycle = 0;
     let mut found = false;
@@ -107,9 +109,7 @@ fn move_up(
             *distinct_pos += 1;
             characters[current_pos.0 - 1][current_pos.1] = 'U';
 
-            if !(total_map.contains_key(&(current_pos.0 - 1, current_pos.1))
-                && *total_map.get(&(current_pos.0 - 1, current_pos.1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0 - 1, current_pos.1))) {
                 characters[current_pos.0 - 1][current_pos.1] = '#';
                 check_loop(
                     characters,
@@ -124,9 +124,7 @@ fn move_up(
                 characters[current_pos.0 - 1][current_pos.1] = 'U';
             }
         } else {
-            if !(total_map.contains_key(&(current_pos.0 - 1, current_pos.1))
-                && *total_map.get(&(current_pos.0 - 1, current_pos.1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0 - 1, current_pos.1))) {
                 characters[current_pos.0 - 1][current_pos.1] = '#';
                 check_loop(
                     characters,
@@ -141,9 +139,9 @@ fn move_up(
                 characters[current_pos.0 - 1][current_pos.1] = 'U';
             }
         }
+        total_map.insert((current_pos.0 - 1, current_pos.1));
         if current_loops < *loop_possible_count {
-            total_map.insert((current_pos.0 - 1, current_pos.1), true);
-            println!("U{} {}", current_pos.0 - 1, current_pos.1);
+            println!("{} {}", current_pos.0 - 1, current_pos.1);
         }
 
         current_pos.0 -= 1;
@@ -155,7 +153,7 @@ fn move_right(
     current_pos: &mut (usize, usize, Direction),
     distinct_pos: &mut usize,
     loop_possible_count: &mut usize,
-    total_map: &mut HashMap<(usize, usize), bool>,
+    total_map: &mut HashSet<(usize, usize)>,
 ) {
     let mut current_cycle = 0;
     let mut found = false;
@@ -172,9 +170,7 @@ fn move_right(
         if characters[current_pos.0][current_pos.1 + 1] == '.' {
             *distinct_pos += 1;
             characters[current_pos.0][current_pos.1 + 1] = 'R';
-            if !(total_map.contains_key(&(current_pos.0, current_pos.1 + 1))
-                && *total_map.get(&(current_pos.0, current_pos.1 + 1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0, current_pos.1 + 1))) {
                 characters[current_pos.0][current_pos.1 + 1] = '#';
                 check_loop(
                     characters,
@@ -189,9 +185,7 @@ fn move_right(
                 characters[current_pos.0][current_pos.1 + 1] = 'R';
             }
         } else {
-            if !(total_map.contains_key(&(current_pos.0, current_pos.1 + 1))
-                && *total_map.get(&(current_pos.0, current_pos.1 + 1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0, current_pos.1 + 1))) {
                 characters[current_pos.0][current_pos.1 + 1] = '#';
                 check_loop(
                     characters,
@@ -206,9 +200,9 @@ fn move_right(
                 characters[current_pos.0][current_pos.1 + 1] = 'R';
             }
         }
+        total_map.insert((current_pos.0, current_pos.1 + 1));
         if current_loops < *loop_possible_count {
-            total_map.insert((current_pos.0, current_pos.1 + 1), true);
-            println!("R{} {}", current_pos.0, current_pos.1 + 1);
+            println!("{} {}", current_pos.0, current_pos.1 + 1);
         }
         current_pos.1 += 1;
     }
@@ -219,7 +213,7 @@ fn move_down(
     current_pos: &mut (usize, usize, Direction),
     distinct_pos: &mut usize,
     loop_possible_count: &mut usize,
-    total_map: &mut HashMap<(usize, usize), bool>,
+    total_map: &mut HashSet<(usize, usize)>,
 ) {
     let mut found = false;
     let mut current_cycle = 0;
@@ -237,9 +231,7 @@ fn move_down(
             *distinct_pos += 1;
             characters[current_pos.0 + 1][current_pos.1] = 'D';
 
-            if !(total_map.contains_key(&(current_pos.0 + 1, current_pos.1))
-                && *total_map.get(&(current_pos.0 + 1, current_pos.1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0 + 1, current_pos.1))) {
                 characters[current_pos.0 + 1][current_pos.1] = '#';
                 check_loop(
                     characters,
@@ -254,9 +246,7 @@ fn move_down(
                 characters[current_pos.0 + 1][current_pos.1] = 'D';
             }
         } else {
-            if !(total_map.contains_key(&(current_pos.0 + 1, current_pos.1))
-                && *total_map.get(&(current_pos.0 + 1, current_pos.1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0 + 1, current_pos.1))) {
                 characters[current_pos.0 + 1][current_pos.1] = '#';
                 check_loop(
                     characters,
@@ -268,12 +258,12 @@ fn move_down(
                     &mut current_cycle,
                     &mut found,
                 );
+                characters[current_pos.0 + 1][current_pos.1] = 'D';
             }
-            characters[current_pos.0 + 1][current_pos.1] = 'D';
         }
+        total_map.insert((current_pos.0 + 1, current_pos.1));
         if current_loops < *loop_possible_count {
-            total_map.insert((current_pos.0 + 1, current_pos.1), true);
-            println!("D{} {}", current_pos.0 + 1, current_pos.1);
+            println!("{} {}", current_pos.0 + 1, current_pos.1);
         }
         current_pos.0 += 1;
     }
@@ -284,7 +274,7 @@ fn move_left(
     current_pos: &mut (usize, usize, Direction),
     distinct_pos: &mut usize,
     loop_possible_count: &mut usize,
-    total_map: &mut HashMap<(usize, usize), bool>,
+    total_map: &mut HashSet<(usize, usize)>,
 ) {
     let mut current_cycle = 0;
     let mut found: bool = false;
@@ -301,9 +291,7 @@ fn move_left(
         if characters[current_pos.0][current_pos.1 - 1] == '.' {
             *distinct_pos += 1;
             characters[current_pos.0][current_pos.1 - 1] = 'L';
-            if !(total_map.contains_key(&(current_pos.0, current_pos.1 - 1))
-                && *total_map.get(&(current_pos.0, current_pos.1 - 1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0, current_pos.1 - 1))) {
                 characters[current_pos.0][current_pos.1 - 1] = '#';
                 check_loop(
                     characters,
@@ -318,9 +306,7 @@ fn move_left(
                 characters[current_pos.0][current_pos.1 - 1] = 'L';
             }
         } else {
-            if !(total_map.contains_key(&(current_pos.0, current_pos.1 - 1))
-                && *total_map.get(&(current_pos.0, current_pos.1 - 1)).unwrap())
-            {
+            if !(total_map.contains(&(current_pos.0, current_pos.1 - 1))) {
                 characters[current_pos.0][current_pos.1 - 1] = '#';
                 check_loop(
                     characters,
@@ -335,9 +321,9 @@ fn move_left(
                 characters[current_pos.0][current_pos.1 - 1] = 'L';
             }
         }
+        total_map.insert((current_pos.0, current_pos.1 - 1));
         if current_loops < *loop_possible_count {
-            total_map.insert((current_pos.0, current_pos.1 - 1), true);
-            println!("L{} {}", current_pos.0, current_pos.1 - 1);
+            println!("{} {}", current_pos.0, current_pos.1 - 1);
         }
         current_pos.1 -= 1;
     }
@@ -353,7 +339,7 @@ fn check_loop(
     current_cycle: &mut usize,
     found: &mut bool,
 ) {
-    /* * println!(
+    /* * //println!(
         "temp {} {} current {} {}",
         temp_pos.0, temp_pos.1, current_pos.0, current_pos.1
     )*/
@@ -441,7 +427,7 @@ fn check_loop(
             }
             _ => false,
         } {
-            println!(" found {:?} {:?}", current_pos, temp_pos);
+            //println!(" found {:?} {:?}", current_pos, temp_pos);
             *loop_possible_count += 1;
             *found = true;
             break;
