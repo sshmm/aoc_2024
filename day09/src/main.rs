@@ -1,10 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use std::{
-    collections::{HashMap, HashSet},
-    io::{self},
-};
+use std::io::{self};
 fn main() -> io::Result<()> {
     let mut blocks0: Vec<i32> = Vec::new();
     parse_characters("day09/resources/data.txt", &mut blocks0);
@@ -21,9 +18,9 @@ fn main() -> io::Result<()> {
 
     let mut blocks1: Vec<(i32, i32)> = Vec::new();
     parse_characters2("day09/resources/data.txt", &mut blocks1);
-    println!("{:?}\n\n\n", blocks1);
+    // println!("{:?}\n\n\n", blocks1);
     let sum = defragement2(&mut blocks1);
-    println!("{:?}", blocks1);
+    // println!("{:?}", blocks1);
     println!("{}", sum);
     Ok(())
 }
@@ -100,7 +97,7 @@ fn parse_characters2(path: &str, list: &mut Vec<(i32, i32)>) {
 
 fn defragement2(list: &mut Vec<(i32, i32)>) -> u64 {
     let mut block_idx = list.len() - 1;
-    'outer: while block_idx > 0 {
+    while block_idx > 0 {
         if list[block_idx].1 <= 0 || list[block_idx].0 <= 0 {
             block_idx -= 1;
             continue;
@@ -124,7 +121,6 @@ fn defragement2(list: &mut Vec<(i32, i32)>) -> u64 {
                 break;
             }
         }
-        println!("{}", block_idx);
         block_idx -= 1;
     }
 
